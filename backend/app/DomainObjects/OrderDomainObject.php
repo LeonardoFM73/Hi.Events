@@ -25,6 +25,8 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
 
     public ?StripePaymentDomainObject $stripePayment = null;
 
+    public ?XenditPaymentDomainObject $xenditPayment = null;
+
     /** @var Collection<QuestionAndAnswerViewDomainObject>|null */
     public ?Collection $questionAndAnswerViews = null;
 
@@ -219,6 +221,17 @@ class OrderDomainObject extends Generated\OrderDomainObjectAbstract implements I
     public function getStripePayment(): ?StripePaymentDomainObject
     {
         return $this->stripePayment;
+    }
+
+    public function setXenditPayment(?XenditPaymentDomainObject $xenditPayment): OrderDomainObject
+    {
+        $this->xenditPayment = $xenditPayment;
+        return $this;
+    }
+
+    public function getXenditPayment(): ?XenditPaymentDomainObject
+    {
+        return $this->xenditPayment;
     }
 
     public function isFreeOrder(): bool

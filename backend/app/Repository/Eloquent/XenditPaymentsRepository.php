@@ -8,17 +8,12 @@ use HiEvents\Repository\Interfaces\XenditPaymentsRepositoryInterface;
 
 class XenditPaymentsRepository extends BaseRepository implements XenditPaymentsRepositoryInterface
 {
-    public function __construct(XenditPayment $model)
-    {
-        parent::__construct($model);
-    }
-
-    protected function getModelClass(): string
+    protected function getModel(): string
     {
         return XenditPayment::class;
     }
 
-    protected function getDomainObjectClass(): string
+    public function getDomainObject(): string
     {
         return XenditPaymentDomainObject::class;
     }

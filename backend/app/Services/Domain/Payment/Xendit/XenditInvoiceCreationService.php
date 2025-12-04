@@ -10,6 +10,7 @@ use HiEvents\Services\Domain\Payment\Xendit\DTOs\CreateInvoiceRequestDTO;
 use HiEvents\Services\Domain\Payment\Xendit\DTOs\CreateInvoiceResponseDTO;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Http\Client\Factory as HttpClientFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -21,6 +22,7 @@ class XenditInvoiceCreationService
         private readonly XenditPaymentsRepositoryInterface     $xenditPaymentsRepository,
         private readonly DatabaseManager                       $databaseManager,
         private readonly OrderApplicationFeeCalculationService $orderApplicationFeeCalculationService,
+        private readonly HttpClientFactory                     $httpClientFactory,
     )
     {
     }
@@ -42,10 +44,11 @@ class XenditInvoiceCreationService
             )->toMinorUnit();
 
             // Generate unique external ID for idempotency
-            $externalId = 'order_' . $invoiceDTO->order->getShortId() . '_' . time();
+            $randomSuffix = bin2hex(random_bytes(4));
+            $externalId = 'order_' . $invoiceDTO->order->getShortId() . '_' . time() . '_' . $randomSuffix;
             
             // Generate invoice ID (will be replaced with Xendit API response later)
-            $invoiceId = 'inv_' . $invoiceDTO->order->getShortId() . '_' . time();
+            $invoiceId = 'inv_' . $invoiceDTO->order->getShortId() . '_' . time() . '_' . $randomSuffix;
 
             // Prepare invoice payload
             $invoicePayload = [
@@ -83,6 +86,7 @@ class XenditInvoiceCreationService
             // Create invoice in database first (will be updated with Xendit response)
             $xenditPayment = $this->xenditPaymentsRepository->create([
                 XenditPaymentDomainObject::ORDER_ID => $invoiceDTO->order->getId(),
+                XenditPaymentDomainObject::INVOICE_ID => $invoiceId,
                 XenditPaymentDomainObject::EXTERNAL_ID => $externalId,
                 XenditPaymentDomainObject::AMOUNT => $invoiceDTO->amount->toMinorUnit(),
                 XenditPaymentDomainObject::CURRENCY => $invoiceDTO->currencyCode,
@@ -91,12 +95,34 @@ class XenditInvoiceCreationService
                 XenditPaymentDomainObject::STATUS => 'PENDING',
             ]);
 
+            // Call Xendit API to create invoice
+            $xenditApiKey = $this->config->get('services.xendit.api_key');
+            $xenditResponse = $this->httpClientFactory
+                ->withBasicAuth($xenditApiKey, '')
+                ->post('https://api.xendit.co/v2/invoices', $invoicePayload);
+
+            if (!$xenditResponse->successful()) {
+                throw new CreateInvoiceFailedException(
+                    'Failed to create invoice with Xendit: ' . $xenditResponse->body()
+                );
+            }
+
+            $xenditData = $xenditResponse->json();
+            $invoiceUrl = $xenditData['invoice_url'] ?? null;
+
+            // Update xendit payment with Xendit response data
+            $this->xenditPaymentsRepository->update($xenditPayment->getId(), [
+                XenditPaymentDomainObject::INVOICE_ID => $xenditData['id'] ?? $invoiceId,
+                XenditPaymentDomainObject::EXTERNAL_ID => $xenditData['external_id'] ?? $externalId,
+                XenditPaymentDomainObject::STATUS => $xenditData['status'] ?? 'PENDING',
+            ]);
+
             $this->databaseManager->commit();
 
             return new CreateInvoiceResponseDTO(
-                invoiceId: $invoiceId,
-                externalId: $externalId,
-                invoiceUrl: null, // Will be set after API call
+                invoiceId: $xenditData['id'] ?? $invoiceId,
+                externalId: $xenditData['external_id'] ?? $externalId,
+                invoiceUrl: $invoiceUrl,
                 amount: $invoiceDTO->amount->toMinorUnit(),
                 applicationFeeAmount: $applicationFee,
             );

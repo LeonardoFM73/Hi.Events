@@ -87,21 +87,11 @@ readonly class CreateInvoiceHandler
             ])
         );
 
-        $xenditPayment = $this->xenditPaymentsRepository->create([
-            XenditPaymentDomainObject::ORDER_ID => $order->getId(),
-            XenditPaymentDomainObject::INVOICE_ID => $invoice->invoiceId,
-            XenditPaymentDomainObject::EXTERNAL_ID => $invoice->externalId,
-            XenditPaymentDomainObject::AMOUNT => $invoice->amount,
-            XenditPaymentDomainObject::CURRENCY => $order->getCurrency(),
-            XenditPaymentDomainObject::PAYER_EMAIL => $order->getEmail(),
-            XenditPaymentDomainObject::STATUS => 'PENDING',
-        ]);
-
         return new CreateInvoiceResponseDTO(
-            invoiceId: $xenditPayment->getInvoiceId(),
-            externalId: $xenditPayment->getExternalId(),
+            invoiceId: $invoice->invoiceId,
+            externalId: $invoice->externalId,
             invoiceUrl: $invoice->invoiceUrl,
-            amount: $xenditPayment->getAmount(),
+            amount: $invoice->amount,
             applicationFeeAmount: $invoice->applicationFeeAmount,
         );
     }

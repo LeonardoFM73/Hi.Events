@@ -2,9 +2,12 @@
 
 namespace HiEvents\Repository\Interfaces;
 
-use HiEvents\Repository\Interfaces\BaseRepositoryInterface;
+use HiEvents\DomainObjects\XenditPaymentDomainObject;
+use HiEvents\Repository\Eloquent\BaseRepository;
 
-interface XenditPaymentsRepositoryInterface extends BaseRepositoryInterface
+/**
+ * @extends BaseRepository<XenditPaymentDomainObject>
+ */
+interface XenditPaymentsRepositoryInterface extends RepositoryInterface
 {
-    //
 }

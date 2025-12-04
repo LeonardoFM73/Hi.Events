@@ -30,7 +30,7 @@ readonly class CreateInvoiceRequestDTO
     public function toArray(array $exclude = []): array
     {
         $data = [
-            'amount' => $this->amount->getAmount(),
+            'amount' => $this->amount->toMinorUnit(),
             'currencyCode' => $this->currencyCode,
             'account' => $this->account,
             'order' => $this->order,
