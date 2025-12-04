@@ -44,6 +44,7 @@ use HiEvents\Repository\Eloquent\TaxAndFeeRepository;
 use HiEvents\Repository\Eloquent\UserRepository;
 use HiEvents\Repository\Eloquent\WebhookLogRepository;
 use HiEvents\Repository\Eloquent\WebhookRepository;
+use HiEvents\Repository\Eloquent\XenditPaymentsRepository;
 use HiEvents\Repository\Interfaces\AccountConfigurationRepositoryInterface;
 use HiEvents\Repository\Interfaces\AccountRepositoryInterface;
 use HiEvents\Repository\Interfaces\AccountStripePlatformRepositoryInterface;
@@ -84,6 +85,7 @@ use HiEvents\Repository\Interfaces\TaxAndFeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\UserRepositoryInterface;
 use HiEvents\Repository\Interfaces\WebhookLogRepositoryInterface;
 use HiEvents\Repository\Interfaces\WebhookRepositoryInterface;
+use HiEvents\Repository\Interfaces\XenditPaymentsRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -132,6 +134,7 @@ class RepositoryServiceProvider extends ServiceProvider
         OrganizerSettingsRepositoryInterface::class => OrganizerSettingsRepository::class,
         EmailTemplateRepositoryInterface::class => EmailTemplateRepository::class,
         AccountStripePlatformRepositoryInterface::class => AccountStripePlatformRepository::class,
+        XenditPaymentsRepositoryInterface::class => XenditPaymentsRepository::class,
     ];
 
     public function register(): void

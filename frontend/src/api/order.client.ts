@@ -154,6 +154,16 @@ export const orderClientPublic = {
         return response.data;
     },
 
+    createXenditInvoice: async (eventId: number, orderShortId: string) => {
+        const response = await publicApi.post<{
+            invoice_id: string,
+            external_id: string,
+            invoice_url?: string,
+            amount: number,
+        }>(`events/${eventId}/order/${orderShortId}/xendit/invoice`);
+        return response.data;
+    },
+
     finaliseOrder: async (
         eventId: number,
         orderShortId: string,

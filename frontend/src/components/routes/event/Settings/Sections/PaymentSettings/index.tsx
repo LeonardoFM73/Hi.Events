@@ -86,6 +86,11 @@ export const PaymentAndInvoicingSettings = () => {
             description: t`Accept credit card payments with Stripe`
         },
         {
+            value: "XENDIT",
+            label: t`Xendit`,
+            description: t`Accept payments via Xendit (Indonesia: bank transfer, e-wallet, QRIS, credit card)`
+        },
+        {
             value: "OFFLINE",
             label: t`Offline Payments`,
             description: t`Accept bank transfers, checks, or other offline payment methods`
