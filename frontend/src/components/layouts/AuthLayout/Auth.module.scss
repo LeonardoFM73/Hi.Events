@@ -12,7 +12,7 @@
   flex: 1;
   display: flex;
   position: relative;
-  background: linear-gradient(135deg, #faf5ff 0%, #ffffff 50%, #f9f5ff 100%);
+  background: transparent;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   height: 100vh;
 }
@@ -21,7 +21,7 @@
   flex: 1;
   min-width: 0;
   position: relative;
-  background: transparent;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 25%, #e9d5ff 50%, #ddd6fe 75%, #c4b5fd 100%);
   overflow-y: auto;
 
   @include mixins.respond-below(md) {
@@ -33,16 +33,14 @@
   width: 50%;
   position: relative;
   overflow: hidden;
-  background-image: url("/login-background.jpg");
-  background-size: cover;
-  background-position: center;
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 25%, #a78bfa 50%, #8b5cf6 75%, #7c3aed 100%);
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--mantine-color-primary-9) 0%, var(--mantine-color-secondary-3) 100%);
-    opacity: 0.95;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(139, 92, 246, 0.2) 100%);
+    opacity: 0.5;
   }
 
   @include mixins.respond-below(md) {
@@ -57,7 +55,7 @@
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  z-index: 1; // Ensure content appears above the gradient overlay
+  z-index: 1;
 }
 
 .content {
