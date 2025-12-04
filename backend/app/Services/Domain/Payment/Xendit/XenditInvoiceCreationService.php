@@ -111,7 +111,7 @@ class XenditInvoiceCreationService
             $invoiceUrl = $xenditData['invoice_url'] ?? null;
 
             // Update xendit payment with Xendit response data
-            $this->xenditPaymentsRepository->update($xenditPayment->getId(), [
+            $this->xenditPaymentsRepository->updateFromArray($xenditPayment->getId(), [
                 XenditPaymentDomainObject::INVOICE_ID => $xenditData['id'] ?? $invoiceId,
                 XenditPaymentDomainObject::EXTERNAL_ID => $xenditData['external_id'] ?? $externalId,
                 XenditPaymentDomainObject::STATUS => $xenditData['status'] ?? 'PENDING',
