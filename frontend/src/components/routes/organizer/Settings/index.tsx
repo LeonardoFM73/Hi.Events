@@ -13,6 +13,7 @@ import {useMediaQuery} from "@mantine/hooks";
 import {useState} from "react";
 import {Card} from "../../../common/Card";
 import {useParams} from "react-router";
+import classes from "./Settings.module.scss";
 
 const Settings = () => {
     const { organizerId } = useParams();
@@ -72,7 +73,7 @@ const Settings = () => {
 
     const sideMenu = (
         <Card style={{padding: '15px', marginBottom: 0}}>
-            <Stack gap="xs">
+            <Stack gap="xs" className={classes.settingsNavLink}>
                 {SECTIONS.map((section) => (
                     <MantineNavLink
                         style={{borderRadius: '5px'}}

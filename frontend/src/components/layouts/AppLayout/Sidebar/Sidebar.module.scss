@@ -4,10 +4,10 @@
   display: flex;
   flex-direction: column;
   grid-area: sidebar;
-  background: linear-gradient(180deg, var(--mantine-color-primary-9), var(--mantine-color-secondary-9));
+  background: linear-gradient(180deg, #7c3aed, #6d28d9);
   color: var(--hi-color-white);
   position: relative;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
   height: 100vh;
 
   &.closed {
@@ -95,7 +95,7 @@
       text-align: left;
 
       .navBadge {
-        background: var(--hi-primary);
+        background: #a78bfa;
         color: white;
         padding: 2px 6px;
         border-radius: 12px;
@@ -132,10 +132,11 @@
       }
 
       &.linkActive {
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.15);
         color: white;
         font-weight: 600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        border-left: 3px solid #a78bfa;
 
         .linkIcon {
           color: rgba(255, 255, 255, 1);
@@ -143,7 +144,7 @@
       }
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.1);
         color: white;
         transform: translateY(-1px);
 

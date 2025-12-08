@@ -1,0 +1,32 @@
+.settingsNavLink {
+  :global(.mantine-NavLink-root) {
+    &.mantine-NavLink-active {
+      background-color: #ede9fe !important;
+      color: #7c3aed !important;
+      font-weight: 600;
+
+      :global(.mantine-NavLink-label) {
+        color: #7c3aed !important;
+      }
+
+      :global(svg) {
+        color: #7c3aed !important;
+      }
+    }
+
+    &:hover:not(.mantine-NavLink-active) {
+      background-color: #f5f3ff !important;
+      color: #6d28d9 !important;
+
+      :global(.mantine-NavLink-label) {
+        color: #6d28d9 !important;
+      }
+
+      :global(svg) {
+        color: #6d28d9 !important;
+      }
+    }
+  }
+}
+
+

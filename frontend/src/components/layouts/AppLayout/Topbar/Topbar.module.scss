@@ -2,7 +2,7 @@
 
 .topBar {
   grid-area: topbar;
-  background: linear-gradient(90deg, var(--mantine-color-primary-9), var(--mantine-color-secondary-9));
+  background: linear-gradient(90deg, #7c3aed, #6d28d9);
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.3s ease;
@@ -32,7 +32,7 @@
     z-index: 5;
     min-height: 50px;
 
-    &::before {
+      &::before {
       content: '';
       position: absolute;
       top: -1px;
@@ -75,7 +75,7 @@
       position: relative;
 
       &:hover {
-        color: var(--hi-text);
+        color: #7c3aed;
       }
 
       &:last-child {
@@ -90,7 +90,7 @@
         left: 0;
         width: 0;
         height: 1px;
-        background-color: var(--hi-primary);
+        background-color: #7c3aed;
         transition: width 0.2s ease;
       }
 
@@ -162,7 +162,7 @@
 
   @include mixins.respond-below(md) {
     .topBarMain {
-      background: linear-gradient(90deg, var(--mantine-color-primary-9), var(--mantine-color-secondary-9));
+      background: linear-gradient(90deg, #7c3aed, #6d28d9);
     }
   }
 
