@@ -114,9 +114,25 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
 
     // Effect untuk mulai polling otomatis saat invoice dibuat
     useEffect(() => {
-        if (isXenditFetched && xenditData && !isPolling && !isPaid) {
-            console.log('[Xendit] Invoice created, starting polling...');
-            startPolling();
+        if (isXenditFetched && xenditData && !isPaid) {
+            console.log('[Xendit] Invoice created, checking if polling needed...');
+
+            // Cek apakah polling sudah berjalan
+            if (!pollingRef.current) {
+                console.log('[Xendit] Starting polling...');
+                setIsPolling(true);
+                setPollAttempts(0);
+
+                // Cek langsung pertama kali
+                checkPaymentStatus();
+
+                // Setup interval
+                pollingRef.current = setInterval(() => {
+                    checkPaymentStatus();
+                }, POLL_INTERVAL);
+            } else {
+                console.log('[Xendit] Polling already active');
+            }
         }
 
         return () => {
@@ -126,20 +142,26 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
                 pollingRef.current = null;
             }
         };
-    }, [isXenditFetched, xenditData, isPolling, isPaid, startPolling]);
+    }, [isXenditFetched, xenditData, isPaid]);
 
     // Effect untuk handle visibility change (user kembali ke tab)
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (!document.hidden && xenditData && !isPaid) {
                 console.log('[Xendit] Tab became visible, checking payment status...');
+
                 // Langsung cek status saat user kembali ke tab
                 checkPaymentStatus();
 
                 // Restart polling jika tidak aktif
-                if (!isPolling) {
+                if (!pollingRef.current) {
                     console.log('[Xendit] Restarting polling after tab became visible...');
-                    startPolling();
+                    setIsPolling(true);
+                    setPollAttempts(0);
+
+                    pollingRef.current = setInterval(() => {
+                        checkPaymentStatus();
+                    }, POLL_INTERVAL);
                 }
             }
         };
@@ -149,7 +171,7 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [xenditData, isPaid, isPolling, checkPaymentStatus, startPolling]);
+    }, [xenditData, isPaid]);
 
     // Effect untuk handle window focus (alternatif untuk visibility)
     useEffect(() => {
@@ -157,6 +179,17 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
             if (xenditData && !isPaid) {
                 console.log('[Xendit] Window focused, checking payment status...');
                 checkPaymentStatus();
+
+                // Ensure polling is running
+                if (!pollingRef.current) {
+                    console.log('[Xendit] Restarting polling after window focus...');
+                    setIsPolling(true);
+                    setPollAttempts(0);
+
+                    pollingRef.current = setInterval(() => {
+                        checkPaymentStatus();
+                    }, POLL_INTERVAL);
+                }
             }
         };
 
@@ -165,7 +198,7 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
         return () => {
             window.removeEventListener('focus', handleFocus);
         };
-    }, [xenditData, isPaid, checkPaymentStatus]);
+    }, [xenditData, isPaid]);
 
     useEffect(() => {
         if (setSubmitHandler && isXenditFetched) {

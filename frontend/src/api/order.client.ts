@@ -1,4 +1,4 @@
-import {publicApi} from "./public-client.ts";
+import { publicApi } from "./public-client.ts";
 import {
     GenericDataResponse,
     GenericPaginatedResponse,
@@ -7,8 +7,8 @@ import {
     QueryFilters,
     StripePaymentIntent
 } from "../types.ts";
-import {api} from "./client.ts";
-import {queryParamsHelper} from "../utilites/queryParamsHelper.ts";
+import { api } from "./client.ts";
+import { queryParamsHelper } from "../utilites/queryParamsHelper.ts";
 
 export interface OrderDetails {
     first_name: string,
@@ -161,6 +161,17 @@ export const orderClientPublic = {
             invoice_url?: string,
             amount: number,
         }>(`events/${eventId}/order/${orderShortId}/xendit/invoice`);
+        return response.data;
+    },
+
+    createMockPayment: async (eventId: number, orderShortId: string) => {
+        const response = await publicApi.post<{
+            payment_id: string,
+            order_short_id: string,
+            status: string,
+            message: string,
+            webhook_url: string,
+        }>(`events/${eventId}/order/${orderShortId}/mock/payment`);
         return response.data;
     },
 
