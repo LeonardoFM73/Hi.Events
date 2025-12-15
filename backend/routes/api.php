@@ -44,6 +44,7 @@ use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListAttendeesPublicActio
 use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListPublicAction;
 use HiEvents\Http\Actions\CheckInLists\UpdateCheckInListAction;
 use HiEvents\Http\Actions\Common\GetColorThemesAction;
+use HiEvents\Http\Actions\Common\Webhooks\MockIncomingWebhookAction;
 use HiEvents\Http\Actions\Common\Webhooks\StripeIncomingWebhookAction;
 use HiEvents\Http\Actions\Common\Webhooks\XenditIncomingWebhookAction;
 use HiEvents\Http\Actions\Events\CreateEventAction;
@@ -86,6 +87,7 @@ use HiEvents\Http\Actions\Orders\GetOrdersAction;
 use HiEvents\Http\Actions\Orders\MarkOrderAsPaidAction;
 use HiEvents\Http\Actions\Orders\MessageOrderAction;
 use HiEvents\Http\Actions\Orders\Payment\RefundOrderAction;
+use HiEvents\Http\Actions\Orders\Payment\Mock\CreateMockPaymentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\CreatePaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Stripe\GetPaymentIntentActionPublic;
 use HiEvents\Http\Actions\Orders\Payment\Xendit\CreateInvoiceActionPublic;
@@ -423,10 +425,14 @@ $router->prefix('/public')->group(
         // Xendit payment gateway
         $router->post('/events/{event_id}/order/{order_short_id}/xendit/invoice', CreateInvoiceActionPublic::class);
 
+        // Mock payment gateway (for testing)
+        $router->post('/events/{event_id}/order/{order_short_id}/mock/payment', CreateMockPaymentActionPublic::class);
+
         // Questions
         $router->get('/events/{event_id}/questions', GetQuestionsPublicAction::class);
 
         // Webhooks
+        $router->post('/webhooks/mock', MockIncomingWebhookAction::class);
         $router->post('/webhooks/stripe', StripeIncomingWebhookAction::class);
         $router->post('/webhooks/xendit', XenditIncomingWebhookAction::class);
 
