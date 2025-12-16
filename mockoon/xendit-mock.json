@@ -1,0 +1,242 @@
+{
+    "uuid": "xendit-mock-api",
+    "lastMigration": 32,
+    "name": "Xendit Mock API",
+    "endpointPrefix": "",
+    "latency": 0,
+    "port": 3000,
+    "hostname": "0.0.0.0",
+    "folders": [],
+    "routes": [
+        {
+            "uuid": "create-invoice-route",
+            "type": "http",
+            "documentation": "Create Xendit Invoice",
+            "method": "post",
+            "endpoint": "v2/invoices",
+            "responses": [
+                {
+                    "uuid": "create-invoice-success",
+                    "body": "{\n  \"id\": \"{{faker 'string.uuid'}}\",\n  \"external_id\": \"{{urlParam 'external_id' request.body}}\",\n  \"user_id\": \"{{faker 'string.uuid'}}\",\n  \"status\": \"PENDING\",\n  \"merchant_name\": \"Hi.Events\",\n  \"merchant_profile_picture_url\": \"https://example.com/logo.png\",\n  \"amount\": {{jsonPath request.body '$.amount'}},\n  \"payer_email\": \"{{jsonPath request.body '$.payer_email'}}\",\n  \"description\": \"{{jsonPath request.body '$.description'}}\",\n  \"expiry_date\": \"{{date '2025-12-31T23:59:59.000Z'}}\",\n  \"invoice_url\": \"http://localhost:3000/mock-payment/{{faker 'string.uuid'}}\",\n  \"available_banks\": [\n    {\n      \"bank_code\": \"BCA\",\n      \"collection_type\": \"POOL\",\n      \"transfer_amount\": {{jsonPath request.body '$.amount'}},\n      \"bank_branch\": \"Virtual Account\",\n      \"account_holder_name\": \"Hi.Events\",\n      \"identity_amount\": 0\n    },\n    {\n      \"bank_code\": \"BNI\",\n      \"collection_type\": \"POOL\",\n      \"transfer_amount\": {{jsonPath request.body '$.amount'}},\n      \"bank_branch\": \"Virtual Account\",\n      \"account_holder_name\": \"Hi.Events\",\n      \"identity_amount\": 0\n    },\n    {\n      \"bank_code\": \"MANDIRI\",\n      \"collection_type\": \"POOL\",\n      \"transfer_amount\": {{jsonPath request.body '$.amount'}},\n      \"bank_branch\": \"Virtual Account\",\n      \"account_holder_name\": \"Hi.Events\",\n      \"identity_amount\": 0\n    }\n  ],\n  \"available_retail_outlets\": [\n    {\n      \"retail_outlet_name\": \"ALFAMART\"\n    },\n    {\n      \"retail_outlet_name\": \"INDOMARET\"\n    }\n  ],\n  \"available_ewallets\": [\n    {\n      \"ewallet_type\": \"OVO\"\n    },\n    {\n      \"ewallet_type\": \"DANA\"\n    },\n    {\n      \"ewallet_type\": \"LINKAJA\"\n    },\n    {\n      \"ewallet_type\": \"SHOPEEPAY\"\n    }\n  ],\n  \"available_qr_codes\": [\n    {\n      \"qr_code_type\": \"QRIS\"\n    }\n  ],\n  \"available_direct_debits\": [],\n  \"available_paylaters\": [\n    {\n      \"paylater_type\": \"KREDIVO\"\n    }\n  ],\n  \"should_exclude_credit_card\": false,\n  \"should_send_email\": true,\n  \"created\": \"{{now 'yyyy-MM-dd'}}T{{now 'HH:mm:ss'}}.000Z\",\n  \"updated\": \"{{now 'yyyy-MM-dd'}}T{{now 'HH:mm:ss'}}.000Z\",\n  \"currency\": \"{{jsonPath request.body '$.currency'}}\",\n  \"items\": {{stringify (jsonPath request.body '$.items')}},\n  \"fees\": {{stringify (jsonPath request.body '$.fees')}},\n  \"customer\": {{stringify (jsonPath request.body '$.customer')}}\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Success",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id"
+                },
+                {
+                    "uuid": "create-invoice-error",
+                    "body": "{\n  \"error_code\": \"API_VALIDATION_ERROR\",\n  \"message\": \"Invalid request parameters\"\n}",
+                    "latency": 0,
+                    "statusCode": 400,
+                    "label": "Bad Request",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "body",
+                            "modifier": "external_id",
+                            "value": "",
+                            "invert": false,
+                            "operator": "null"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id"
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "get-invoice-route",
+            "type": "http",
+            "documentation": "Get Invoice by ID",
+            "method": "get",
+            "endpoint": "v2/invoices/:invoice_id",
+            "responses": [
+                {
+                    "uuid": "get-invoice-success",
+                    "body": "{\n  \"id\": \"{{urlParam 'invoice_id'}}\",\n  \"external_id\": \"order_{{faker 'string.alphanumeric' 10}}\",\n  \"user_id\": \"{{faker 'string.uuid'}}\",\n  \"status\": \"PENDING\",\n  \"merchant_name\": \"Hi.Events\",\n  \"amount\": 100000,\n  \"payer_email\": \"{{faker 'internet.email'}}\",\n  \"description\": \"Event ticket payment\",\n  \"expiry_date\": \"{{date '2025-12-31T23:59:59.000Z'}}\",\n  \"invoice_url\": \"http://localhost:3000/mock-payment/{{urlParam 'invoice_id'}}\",\n  \"created\": \"{{now 'yyyy-MM-dd'}}T{{now 'HH:mm:ss'}}.000Z\",\n  \"updated\": \"{{now 'yyyy-MM-dd'}}T{{now 'HH:mm:ss'}}.000Z\",\n  \"currency\": \"IDR\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Success",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id"
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "expire-invoice-route",
+            "type": "http",
+            "documentation": "Expire Invoice",
+            "method": "post",
+            "endpoint": "invoices/:invoice_id/expire",
+            "responses": [
+                {
+                    "uuid": "expire-invoice-success",
+                    "body": "{\n  \"id\": \"{{urlParam 'invoice_id'}}\",\n  \"external_id\": \"order_{{faker 'string.alphanumeric' 10}}\",\n  \"status\": \"EXPIRED\",\n  \"updated\": \"{{now 'yyyy-MM-dd'}}T{{now 'HH:mm:ss'}}.000Z\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Success",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id"
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "mock-payment-page",
+            "type": "http",
+            "documentation": "Mock Payment Page - Simulate payment completion",
+            "method": "get",
+            "endpoint": "mock-payment/:payment_id",
+            "responses": [
+                {
+                    "uuid": "payment-page-html",
+                    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Xendit Mock Payment</title>\n    <style>\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\n            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n            min-height: 100vh;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 20px;\n        }\n        .container {\n            background: white;\n            border-radius: 16px;\n            box-shadow: 0 20px 60px rgba(0,0,0,0.3);\n            max-width: 500px;\n            width: 100%;\n            padding: 40px;\n        }\n        .logo {\n            text-align: center;\n            margin-bottom: 30px;\n        }\n        .logo h1 {\n            color: #667eea;\n            font-size: 32px;\n            font-weight: 700;\n        }\n        .info {\n            background: #f7f9fc;\n            border-radius: 12px;\n            padding: 20px;\n            margin-bottom: 30px;\n        }\n        .info-row {\n            display: flex;\n            justify-content: space-between;\n            margin-bottom: 12px;\n            font-size: 14px;\n        }\n        .info-row:last-child { margin-bottom: 0; }\n        .info-label {\n            color: #6b7280;\n            font-weight: 500;\n        }\n        .info-value {\n            color: #1f2937;\n            font-weight: 600;\n        }\n        .amount {\n            text-align: center;\n            margin: 30px 0;\n        }\n        .amount-label {\n            color: #6b7280;\n            font-size: 14px;\n            margin-bottom: 8px;\n        }\n        .amount-value {\n            color: #1f2937;\n            font-size: 36px;\n            font-weight: 700;\n        }\n        .btn {\n            width: 100%;\n            padding: 16px;\n            border: none;\n            border-radius: 12px;\n            font-size: 16px;\n            font-weight: 600;\n            cursor: pointer;\n            transition: all 0.3s;\n            margin-bottom: 12px;\n        }\n        .btn-success {\n            background: linear-gradient(135deg, #10b981 0%, #059669 100%);\n            color: white;\n        }\n        .btn-success:hover {\n            transform: translateY(-2px);\n            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);\n        }\n        .btn-fail {\n            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);\n            color: white;\n        }\n        .btn-fail:hover {\n            transform: translateY(-2px);\n            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);\n        }\n        .status {\n            text-align: center;\n            padding: 20px;\n            border-radius: 12px;\n            margin-top: 20px;\n            display: none;\n        }\n        .status.success {\n            background: #d1fae5;\n            color: #065f46;\n            display: block;\n        }\n        .status.error {\n            background: #fee2e2;\n            color: #991b1b;\n            display: block;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"logo\">\n            <h1>💳 Xendit Mock</h1>\n        </div>\n        \n        <div class=\"info\">\n            <div class=\"info-row\">\n                <span class=\"info-label\">Payment ID:</span>\n                <span class=\"info-value\">{{urlParam 'payment_id'}}</span>\n            </div>\n            <div class=\"info-row\">\n                <span class=\"info-label\">Merchant:</span>\n                <span class=\"info-value\">Hi.Events</span>\n            </div>\n            <div class=\"info-row\">\n                <span class=\"info-label\">Status:</span>\n                <span class=\"info-value\">PENDING</span>\n            </div>\n        </div>\n\n        <div class=\"amount\">\n            <div class=\"amount-label\">Amount to Pay</div>\n            <div class=\"amount-value\">Rp 100,000</div>\n        </div>\n\n        <button class=\"btn btn-success\" onclick=\"simulatePayment('PAID')\">✓ Simulate Successful Payment</button>\n        <button class=\"btn btn-fail\" onclick=\"simulatePayment('FAILED')\">✗ Simulate Failed Payment</button>\n\n        <div id=\"status\" class=\"status\"></div>\n    </div>\n\n    <script>\n        function simulatePayment(status) {\n            const statusDiv = document.getElementById('status');\n            \n            if (status === 'PAID') {\n                statusDiv.className = 'status success';\n                statusDiv.innerHTML = '<strong>✓ Payment Successful!</strong><br>Webhook will be sent to your application.';\n                \n                // Simulate webhook callback (in real scenario, this would be sent from backend)\n                console.log('Simulating webhook for successful payment');\n            } else {\n                statusDiv.className = 'status error';\n                statusDiv.innerHTML = '<strong>✗ Payment Failed!</strong><br>Please try again.';\n            }\n        }\n    </script>\n</body>\n</html>",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Payment Page",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "text/html"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id"
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        }
+    ],
+    "rootChildren": [
+        {
+            "type": "route",
+            "uuid": "create-invoice-route"
+        },
+        {
+            "type": "route",
+            "uuid": "get-invoice-route"
+        },
+        {
+            "type": "route",
+            "uuid": "expire-invoice-route"
+        },
+        {
+            "type": "route",
+            "uuid": "mock-payment-page"
+        }
+    ],
+    "proxyMode": false,
+    "proxyHost": "",
+    "proxyRemovePrefix": false,
+    "tlsOptions": {
+        "enabled": false,
+        "type": "CERT",
+        "pfxPath": "",
+        "certPath": "",
+        "keyPath": "",
+        "caPath": "",
+        "passphrase": ""
+    },
+    "cors": true,
+    "headers": [
+        {
+            "key": "Content-Type",
+            "value": "application/json"
+        },
+        {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+        },
+        {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+        },
+        {
+            "key": "Access-Control-Allow-Headers",
+            "value": "*"
+        }
+    ],
+    "proxyReqHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "proxyResHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "data": [],
+    "callbacks": []
+}

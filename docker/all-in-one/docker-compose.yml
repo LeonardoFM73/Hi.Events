@@ -48,6 +48,7 @@ services:
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - XENDIT_API_KEY=${XENDIT_API_KEY}
       - XENDIT_WEBHOOK_TOKEN=${XENDIT_WEBHOOK_TOKEN}
+      - XENDIT_BASE_URL=${XENDIT_BASE_URL:-http://mockoon:3000}
       - WEBHOOK_QUEUE_NAME=webhook-queue
 
     depends_on:
@@ -55,6 +56,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mockoon:
+        condition: service_started
 
   redis:
     image: redis:7-alpine
@@ -81,6 +84,20 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  mockoon:
+    image: mockoon/cli:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./../../mockoon/xendit-mock.json:/data/xendit-mock.json:ro
+    command: ["--data", "/data/xendit-mock.json", "--port", "3000"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:

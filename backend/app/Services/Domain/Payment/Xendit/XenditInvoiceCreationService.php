@@ -17,14 +17,13 @@ use Throwable;
 class XenditInvoiceCreationService
 {
     public function __construct(
-        private readonly LoggerInterface                       $logger,
-        private readonly Repository                            $config,
-        private readonly XenditPaymentsRepositoryInterface     $xenditPaymentsRepository,
-        private readonly DatabaseManager                       $databaseManager,
+        private readonly LoggerInterface $logger,
+        private readonly Repository $config,
+        private readonly XenditPaymentsRepositoryInterface $xenditPaymentsRepository,
+        private readonly DatabaseManager $databaseManager,
         private readonly OrderApplicationFeeCalculationService $orderApplicationFeeCalculationService,
-        private readonly HttpClientFactory                     $httpClientFactory,
-    )
-    {
+        private readonly HttpClientFactory $httpClientFactory,
+    ) {
     }
 
     /**
@@ -33,8 +32,7 @@ class XenditInvoiceCreationService
      */
     public function createInvoice(
         CreateInvoiceRequestDTO $invoiceDTO
-    ): CreateInvoiceResponseDTO
-    {
+    ): CreateInvoiceResponseDTO {
         try {
             $this->databaseManager->beginTransaction();
 
@@ -46,7 +44,7 @@ class XenditInvoiceCreationService
             // Generate unique external ID for idempotency
             $randomSuffix = bin2hex(random_bytes(4));
             $externalId = 'order_' . $invoiceDTO->order->getShortId() . '_' . time() . '_' . $randomSuffix;
-            
+
             // Generate invoice ID (will be replaced with Xendit API response later)
             $invoiceId = 'inv_' . $invoiceDTO->order->getShortId() . '_' . time() . '_' . $randomSuffix;
 
@@ -97,9 +95,10 @@ class XenditInvoiceCreationService
 
             // Call Xendit API to create invoice
             $xenditApiKey = $this->config->get('services.xendit.api_key');
+            $xenditBaseUrl = $this->config->get('services.xendit.base_url', 'https://api.xendit.co');
             $xenditResponse = $this->httpClientFactory
                 ->withBasicAuth($xenditApiKey, '')
-                ->post('https://api.xendit.co/v2/invoices', $invoicePayload);
+                ->post($xenditBaseUrl . '/v2/invoices', $invoicePayload);
 
             if (!$xenditResponse->successful()) {
                 throw new CreateInvoiceFailedException(

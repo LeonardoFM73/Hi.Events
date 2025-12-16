@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  mockoon:
+    image: mockoon/cli:latest
+    container_name: xendit-mockoon
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./xendit-mock.json:/data/xendit-mock.json:ro
+    command: ["--data", "/data/xendit-mock.json", "--port", "3000"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mockoon-network
+
+networks:
+  mockoon-network:
+    driver: bridge

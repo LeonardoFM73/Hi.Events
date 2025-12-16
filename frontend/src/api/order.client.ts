@@ -164,17 +164,6 @@ export const orderClientPublic = {
         return response.data;
     },
 
-    createMockPayment: async (eventId: number, orderShortId: string) => {
-        const response = await publicApi.post<{
-            payment_id: string,
-            order_short_id: string,
-            status: string,
-            message: string,
-            webhook_url: string,
-        }>(`events/${eventId}/order/${orderShortId}/mock/payment`);
-        return response.data;
-    },
-
     finaliseOrder: async (
         eventId: number,
         orderShortId: string,

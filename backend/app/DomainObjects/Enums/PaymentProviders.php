@@ -9,5 +9,4 @@ enum PaymentProviders: string
     case STRIPE = 'STRIPE';
     case XENDIT = 'XENDIT';
     case OFFLINE = 'OFFLINE';
-    case MOCK = 'MOCK';
 }

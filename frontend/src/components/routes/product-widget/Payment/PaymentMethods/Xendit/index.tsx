@@ -25,180 +25,86 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
     } = useCreateXenditInvoice(eventId, orderShortId);
     const { data: event } = useGetEventPublic(eventId);
 
-    // State untuk polling payment status
+    // Tambahkan state dan polling payment status
     const [isPolling, setIsPolling] = useState(false);
     const [isPaid, setIsPaid] = useState(false);
     const [pollError, setPollError] = useState("");
     const [pollAttempts, setPollAttempts] = useState(0);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
-    const MAX_POLL_ATTEMPTS = 120; // 120 attempts x 2 seconds = 4 minutes max
-    const POLL_INTERVAL = 2000; // 2 seconds - lebih cepat untuk responsiveness
-
-    const stopPolling = useCallback(() => {
-        console.log('[Xendit Polling] Stopping polling...');
-        setIsPolling(false);
-        if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-        }
-    }, []);
-
-    const startPolling = useCallback(() => {
-        if (isPolling || isPaid) {
-            console.log('[Xendit Polling] Polling already active or payment already received');
-            return;
-        }
-
-        console.log('[Xendit Polling] Starting payment status polling...');
-        setIsPolling(true);
-        setPollAttempts(0);
-
-        // Cek langsung pertama kali
-        checkPaymentStatus();
-
-        // Setup interval polling
-        if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-        }
-        pollingRef.current = setInterval(() => {
-            checkPaymentStatus();
-        }, POLL_INTERVAL);
-    }, [isPolling, isPaid]);
+    const MAX_POLL_ATTEMPTS = 60; // 60 attempts x 3 seconds = 3 minutes max
 
     const checkPaymentStatus = useCallback(async () => {
         if (!eventId || !orderShortId) {
-            console.log('[Xendit Polling] Skipping: missing eventId or orderShortId');
+            console.log('Skipping payment check: missing eventId or orderShortId');
             return;
         }
 
-        if (isPaid) {
-            console.log('[Xendit Polling] Skipping: payment already received');
-            stopPolling();
-            return;
-        }
-
+        let currentAttempts = 0;
         setPollAttempts(prev => {
-            const currentAttempts = prev + 1;
-
+            currentAttempts = prev + 1;
             if (currentAttempts >= MAX_POLL_ATTEMPTS) {
                 console.log('[Xendit Polling] ⏱️ Max polling attempts reached. Stopping polling.');
-                stopPolling();
+                setIsPolling(false);
+                if (pollingRef.current) {
+                    clearInterval(pollingRef.current);
+                    pollingRef.current = null;
+                }
             }
-
             return currentAttempts;
         });
 
         try {
+            console.log(`[Xendit Polling] Checking payment status for order ${orderShortId}... (attempt ${currentAttempts}/${MAX_POLL_ATTEMPTS})`);
             const response = await orderClientPublic.findByShortId(Number(eventId), orderShortId);
             const order = response?.data;
             const paymentStatus = order?.payment_status;
-            const orderStatus = order?.status;
 
-            console.log(`[Xendit Polling] Attempt ${pollAttempts + 1}/${MAX_POLL_ATTEMPTS} - Payment: ${paymentStatus}, Order: ${orderStatus}`);
+            console.log(`[Xendit Polling] Current payment_status:`, paymentStatus, 'Order status:', order?.status);
 
-            // Cek berbagai kondisi sukses
-            if (paymentStatus === 'PAYMENT_RECEIVED' || orderStatus === 'COMPLETED') {
+            if (paymentStatus === 'PAYMENT_RECEIVED') {
                 console.log('[Xendit Polling] ✅ Payment received! Stopping polling.');
                 setIsPaid(true);
+                setIsPolling(false);
                 setPollAttempts(0);
-                stopPolling();
+                if (pollingRef.current) {
+                    clearInterval(pollingRef.current);
+                    pollingRef.current = null;
+                }
             } else {
-                console.log(`[Xendit Polling] ⏳ Waiting... Status: ${paymentStatus}`);
+                console.log(`[Xendit Polling] ⏳ Still waiting... Current status: ${paymentStatus}`);
             }
         } catch (e) {
             console.error('[Xendit Polling] ❌ Error checking payment status:', e);
-            // Jangan stop polling pada error, coba lagi
-            console.log('[Xendit Polling] Will retry on next interval...');
-        }
-    }, [eventId, orderShortId, isPaid, pollAttempts, stopPolling]);
-
-    // Effect untuk mulai polling otomatis saat invoice dibuat
-    useEffect(() => {
-        if (isXenditFetched && xenditData && !isPaid) {
-            console.log('[Xendit] Invoice created, checking if polling needed...');
-
-            // Cek apakah polling sudah berjalan
-            if (!pollingRef.current) {
-                console.log('[Xendit] Starting polling...');
-                setIsPolling(true);
-                setPollAttempts(0);
-
-                // Cek langsung pertama kali
-                checkPaymentStatus();
-
-                // Setup interval
-                pollingRef.current = setInterval(() => {
-                    checkPaymentStatus();
-                }, POLL_INTERVAL);
-            } else {
-                console.log('[Xendit] Polling already active');
+            setPollError(t`Failed to check payment status.`);
+            setIsPolling(false);
+            if (pollingRef.current) {
+                clearInterval(pollingRef.current);
+                pollingRef.current = null;
             }
         }
+    }, [eventId, orderShortId]);
 
+    useEffect(() => {
+        // Mulai polling segera setelah invoice dibuat
+        if (isXenditFetched && xenditData && !isPolling && !isPaid) {
+            console.log('[Xendit] Starting payment status polling...');
+            setIsPolling(true);
+            setPollAttempts(0); // Reset attempts
+            // Cek langsung pertama kali
+            checkPaymentStatus();
+            // Lalu polling setiap 3 detik (lebih cepat)
+            pollingRef.current = setInterval(() => {
+                checkPaymentStatus();
+            }, 3000);
+        }
         return () => {
             if (pollingRef.current) {
-                console.log('[Xendit] Component unmounting, cleaning up polling');
+                console.log('[Xendit] Cleaning up polling interval');
                 clearInterval(pollingRef.current);
                 pollingRef.current = null;
             }
         };
-    }, [isXenditFetched, xenditData, isPaid]);
-
-    // Effect untuk handle visibility change (user kembali ke tab)
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && xenditData && !isPaid) {
-                console.log('[Xendit] Tab became visible, checking payment status...');
-
-                // Langsung cek status saat user kembali ke tab
-                checkPaymentStatus();
-
-                // Restart polling jika tidak aktif
-                if (!pollingRef.current) {
-                    console.log('[Xendit] Restarting polling after tab became visible...');
-                    setIsPolling(true);
-                    setPollAttempts(0);
-
-                    pollingRef.current = setInterval(() => {
-                        checkPaymentStatus();
-                    }, POLL_INTERVAL);
-                }
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, [xenditData, isPaid]);
-
-    // Effect untuk handle window focus (alternatif untuk visibility)
-    useEffect(() => {
-        const handleFocus = () => {
-            if (xenditData && !isPaid) {
-                console.log('[Xendit] Window focused, checking payment status...');
-                checkPaymentStatus();
-
-                // Ensure polling is running
-                if (!pollingRef.current) {
-                    console.log('[Xendit] Restarting polling after window focus...');
-                    setIsPolling(true);
-                    setPollAttempts(0);
-
-                    pollingRef.current = setInterval(() => {
-                        checkPaymentStatus();
-                    }, POLL_INTERVAL);
-                }
-            }
-        };
-
-        window.addEventListener('focus', handleFocus);
-
-        return () => {
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [xenditData, isPaid]);
+    }, [isXenditFetched, xenditData, isPolling, isPaid, checkPaymentStatus]);
 
     useEffect(() => {
         if (setSubmitHandler && isXenditFetched) {
@@ -210,15 +116,24 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
                 }
                 if (invoiceUrl) {
                     console.log('[Xendit] Opening payment page in new tab:', invoiceUrl);
-                    window.open(invoiceUrl, '_blank', 'noopener');
-
-                    // Mulai polling segera setelah buka tab baru
-                    console.log('[Xendit] Starting polling after opening payment page...');
-                    startPolling();
+                    window.open(invoiceUrl, '_blank', 'noopener'); // buka Xendit di tab baru
+                    // Mulai polling segera setelah buka tab baru (jika belum mulai)
+                    if (!isPolling && !isPaid) {
+                        console.log('[Xendit] Starting polling after opening payment page...');
+                        setIsPolling(true);
+                        setPollAttempts(0); // Reset attempts
+                        checkPaymentStatus();
+                        if (pollingRef.current) {
+                            clearInterval(pollingRef.current);
+                        }
+                        pollingRef.current = setInterval(() => {
+                            checkPaymentStatus();
+                        }, 3000);
+                    }
                 }
             });
         }
-    }, [xenditData, isXenditFetched, setSubmitHandler, refetchXenditInvoice, startPolling]);
+    }, [xenditData, isXenditFetched, setSubmitHandler, refetchXenditInvoice, isPolling, isPaid, checkPaymentStatus]);
 
     if (!enabled) {
         return (
