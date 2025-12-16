@@ -109,14 +109,27 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
     useEffect(() => {
         if (setSubmitHandler && isXenditFetched) {
             setSubmitHandler(() => async () => {
+                console.log('[Xendit] Pay button clicked');
+                console.log('[Xendit] xenditData:', xenditData);
+
                 let invoiceUrl = xenditData?.invoice_url;
                 if (!invoiceUrl) {
+                    console.log('[Xendit] Invoice URL missing, refetching...');
                     const result = await refetchXenditInvoice();
+                    console.log('[Xendit] Refetch result:', result.data);
                     invoiceUrl = result.data?.invoice_url;
                 }
+
                 if (invoiceUrl) {
                     console.log('[Xendit] Opening payment page in new tab:', invoiceUrl);
-                    window.open(invoiceUrl, '_blank', 'noopener'); // buka Xendit di tab baru
+                    const newWindow = window.open(invoiceUrl, '_blank', 'noopener'); // buka Xendit di tab baru
+
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        console.warn('[Xendit] Popup blocked! Fallback or show instruction.');
+                        // Fallback logic if needed, or simply user alert
+                        alert(t`Please allow popups for this site to proceed to payment.`);
+                    }
+
                     // Mulai polling segera setelah buka tab baru (jika belum mulai)
                     if (!isPolling && !isPaid) {
                         console.log('[Xendit] Starting polling after opening payment page...');
@@ -130,6 +143,9 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
                             checkPaymentStatus();
                         }, 3000);
                     }
+                } else {
+                    console.error('[Xendit] Failed to get invoice URL after refetch');
+                    alert(t`Failed to initialize payment. Please try again.`);
                 }
             });
         }

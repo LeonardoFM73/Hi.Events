@@ -96,9 +96,21 @@ class XenditInvoiceCreationService
             // Call Xendit API to create invoice
             $xenditApiKey = $this->config->get('services.xendit.api_key');
             $xenditBaseUrl = $this->config->get('services.xendit.base_url', 'https://api.xendit.co');
+
+            $this->logger->debug('DEBUG: Xendit API Request', [
+                'url' => $xenditBaseUrl . '/v2/invoices',
+                'payload' => $invoicePayload,
+                'api_key_masked' => substr($xenditApiKey, 0, 4) . '...',
+            ]);
+
             $xenditResponse = $this->httpClientFactory
                 ->withBasicAuth($xenditApiKey, '')
                 ->post($xenditBaseUrl . '/v2/invoices', $invoicePayload);
+
+            $this->logger->debug('DEBUG: Xendit API Response', [
+                'status' => $xenditResponse->status(),
+                'body' => $xenditResponse->json(),
+            ]);
 
             if (!$xenditResponse->successful()) {
                 throw new CreateInvoiceFailedException(
@@ -108,6 +120,11 @@ class XenditInvoiceCreationService
 
             $xenditData = $xenditResponse->json();
             $invoiceUrl = $xenditData['invoice_url'] ?? null;
+
+            $this->logger->debug('DEBUG: Payment URL Processed', [
+                'invoice_url' => $invoiceUrl,
+                'external_id' => $xenditData['external_id'] ?? null
+            ]);
 
             // Update xendit payment with Xendit response data
             $this->xenditPaymentsRepository->updateFromArray($xenditPayment->getId(), [
