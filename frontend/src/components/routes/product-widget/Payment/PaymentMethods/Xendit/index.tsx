@@ -60,6 +60,7 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
             const paymentStatus = order?.payment_status;
 
             console.log(`[Xendit Polling] Current payment_status:`, paymentStatus, 'Order status:', order?.status);
+            console.log(`[Xendit Polling] Full order data:`, JSON.stringify(order, null, 2));
 
             if (paymentStatus === 'PAYMENT_RECEIVED') {
                 console.log('[Xendit Polling] ✅ Payment received! Stopping polling.');
@@ -83,6 +84,17 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
             }
         }
     }, [eventId, orderShortId]);
+
+    // Auto-redirect ke summary page setelah payment sukses
+    useEffect(() => {
+        if (isPaid && eventId && orderShortId) {
+            console.log('[Xendit] Payment successful! Redirecting to summary page...');
+            // Delay sedikit untuk user bisa lihat pesan sukses
+            setTimeout(() => {
+                window.location.href = `/checkout/${eventId}/${orderShortId}/summary`;
+            }, 1000);
+        }
+    }, [isPaid, eventId, orderShortId]);
 
     useEffect(() => {
         // Mulai polling segera setelah invoice dibuat
