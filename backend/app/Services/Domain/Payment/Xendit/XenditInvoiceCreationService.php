@@ -107,6 +107,12 @@ class XenditInvoiceCreationService
                 ->withBasicAuth($xenditApiKey, '')
                 ->post($xenditBaseUrl . '/v2/invoices', $invoicePayload);
 
+            // RAW DEBUGGING
+            error_log('--------------------------------------------------');
+            error_log('XENDIT RESPONSE STATUS: ' . $xenditResponse->status());
+            error_log('XENDIT RAW BODY: ' . $xenditResponse->body());
+            error_log('--------------------------------------------------');
+
             $this->logger->debug('DEBUG: Xendit API Response', [
                 'status' => $xenditResponse->status(),
                 'body' => $xenditResponse->json(),
