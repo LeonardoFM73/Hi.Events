@@ -62,14 +62,21 @@ readonly class CreateInvoiceHandler
 
         $account = $this->accountRepository
             ->loadRelation(new Relationship(
-                    domainObject: AccountConfigurationDomainObject::class,
-                    name: 'configuration',
-                ))
+                domainObject: AccountConfigurationDomainObject::class,
+                name: 'configuration',
+            ))
             ->findByEventId($order->getEventId());
 
         // If we already have a Xendit payment, return it
         if ($order->getXenditPayment() !== null) {
             $paymentDetails = $order->getXenditPayment()->getPaymentDetails() ?? [];
+
+            // Log what we found in DB
+            logger()->debug('DEBUG: Existing Payment Details:', [
+                'has_details' => !empty($paymentDetails),
+                'invoice_url' => $paymentDetails['invoice_url'] ?? 'NULL',
+                'full_details' => $paymentDetails
+            ]);
 
             return new CreateInvoiceResponseDTO(
                 invoiceId: $order->getXenditPayment()->getInvoiceId(),
