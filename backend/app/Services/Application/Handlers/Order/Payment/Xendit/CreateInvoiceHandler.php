@@ -69,21 +69,35 @@ readonly class CreateInvoiceHandler
 
         // If we already have a Xendit payment, return it
         if ($order->getXenditPayment() !== null) {
-            $paymentDetails = $order->getXenditPayment()->getPaymentDetails() ?? [];
+            $existingPayment = $order->getXenditPayment();
+            $paymentDetails = $existingPayment->getPaymentDetails() ?? [];
+            $invoiceUrl = $paymentDetails['invoice_url'] ?? null;
 
             // Log what we found in DB
-            logger()->debug('DEBUG: Existing Payment Details:', [
+            logger()->debug('DEBUG: Existing Payment Check:', [
                 'has_details' => !empty($paymentDetails),
-                'invoice_url' => $paymentDetails['invoice_url'] ?? 'NULL',
-                'full_details' => $paymentDetails
+                'invoice_url' => $invoiceUrl ?? 'NULL',
             ]);
 
-            return new CreateInvoiceResponseDTO(
-                invoiceId: $order->getXenditPayment()->getInvoiceId(),
-                externalId: $order->getXenditPayment()->getExternalId(),
-                invoiceUrl: $paymentDetails['invoice_url'] ?? null,
-                amount: $order->getXenditPayment()->getAmount(),
-            );
+            if ($invoiceUrl) {
+                return new CreateInvoiceResponseDTO(
+                    invoiceId: $existingPayment->getInvoiceId(),
+                    externalId: $existingPayment->getExternalId(),
+                    invoiceUrl: $invoiceUrl,
+                    amount: $existingPayment->getAmount(),
+                );
+            }
+
+            // If we have a payment record but NO invoice URL, it's a "zombie" record (failed previously).
+            // We must delete it to allow re-creation.
+            logger()->warning('Found corrupted Xendit payment (missing URL). Deleting and recreating.', [
+                'order_id' => $orderShortId,
+                'payment_id' => $existingPayment->getId()
+            ]);
+
+            $this->xenditPaymentsRepository->delete($existingPayment->getId());
+
+            // Allow flow to continue to create new invoice...
         }
 
         $invoice = $this->xenditInvoiceService->createInvoice(
