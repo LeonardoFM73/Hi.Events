@@ -27,13 +27,12 @@ use Throwable;
 readonly class CreateInvoiceHandler
 {
     public function __construct(
-        private OrderRepositoryInterface           $orderRepository,
-        private XenditInvoiceCreationService       $xenditInvoiceService,
-        private CheckoutSessionManagementService   $sessionIdentifierService,
-        private XenditPaymentsRepositoryInterface  $xenditPaymentsRepository,
-        private AccountRepositoryInterface         $accountRepository,
-    )
-    {
+        private OrderRepositoryInterface $orderRepository,
+        private XenditInvoiceCreationService $xenditInvoiceService,
+        private CheckoutSessionManagementService $sessionIdentifierService,
+        private XenditPaymentsRepositoryInterface $xenditPaymentsRepository,
+        private AccountRepositoryInterface $accountRepository,
+    ) {
     }
 
     /**
@@ -63,17 +62,19 @@ readonly class CreateInvoiceHandler
 
         $account = $this->accountRepository
             ->loadRelation(new Relationship(
-                domainObject: AccountConfigurationDomainObject::class,
-                name: 'configuration',
-            ))
+                    domainObject: AccountConfigurationDomainObject::class,
+                    name: 'configuration',
+                ))
             ->findByEventId($order->getEventId());
 
         // If we already have a Xendit payment, return it
         if ($order->getXenditPayment() !== null) {
+            $paymentDetails = $order->getXenditPayment()->getPaymentDetails() ?? [];
+
             return new CreateInvoiceResponseDTO(
                 invoiceId: $order->getXenditPayment()->getInvoiceId(),
                 externalId: $order->getXenditPayment()->getExternalId(),
-                invoiceUrl: null,
+                invoiceUrl: $paymentDetails['invoice_url'] ?? null,
                 amount: $order->getXenditPayment()->getAmount(),
             );
         }

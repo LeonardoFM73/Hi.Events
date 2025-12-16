@@ -131,6 +131,7 @@ class XenditInvoiceCreationService
                 XenditPaymentDomainObject::INVOICE_ID => $xenditData['id'] ?? $invoiceId,
                 XenditPaymentDomainObject::EXTERNAL_ID => $xenditData['external_id'] ?? $externalId,
                 XenditPaymentDomainObject::STATUS => $xenditData['status'] ?? 'PENDING',
+                XenditPaymentDomainObject::PAYMENT_DETAILS => $xenditData,
             ]);
 
             $this->databaseManager->commit();
