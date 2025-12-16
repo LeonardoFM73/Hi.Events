@@ -90,12 +90,8 @@ readonly class CreateInvoiceHandler
 
             // If we have a payment record but NO invoice URL, it's a "zombie" record (failed previously).
             // We must delete it to allow re-creation.
-            logger()->warning('Found corrupted Xendit payment (missing URL). Deleting and recreating.', [
-                'order_id' => $orderShortId,
-                'payment_id' => $existingPayment->getId()
-            ]);
 
-            $this->xenditPaymentsRepository->delete($existingPayment->getId());
+            $this->xenditPaymentsRepository->deleteById($existingPayment->getId());
 
             // Allow flow to continue to create new invoice...
         }
