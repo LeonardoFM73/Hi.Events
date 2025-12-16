@@ -101,22 +101,29 @@ export const XenditPaymentMethod = ({ enabled, setSubmitHandler }: XenditPayment
         if (isXenditFetched && xenditData && !isPolling && !isPaid) {
             console.log('[Xendit] Starting payment status polling...');
             setIsPolling(true);
-            setPollAttempts(0); // Reset attempts
-            // Cek langsung pertama kali
+            setPollAttempts(0);
+
+            // Initial check
             checkPaymentStatus();
-            // Lalu polling setiap 3 detik (lebih cepat)
-            pollingRef.current = setInterval(() => {
+
+            // Setup interval untuk polling berikutnya
+            const intervalId = setInterval(() => {
                 checkPaymentStatus();
             }, 3000);
+
+            pollingRef.current = intervalId;
         }
+
+        // Cleanup hanya saat component unmount atau saat isPaid berubah
         return () => {
-            if (pollingRef.current) {
-                console.log('[Xendit] Cleaning up polling interval');
+            if (pollingRef.current && isPaid) {
+                console.log('[Xendit] Cleaning up polling interval (payment completed)');
                 clearInterval(pollingRef.current);
                 pollingRef.current = null;
             }
         };
-    }, [isXenditFetched, xenditData, isPolling, isPaid, checkPaymentStatus]);
+    }, [isXenditFetched, xenditData, isPolling, isPaid]);
+    // PENTING: Jangan masukkan checkPaymentStatus di sini!
 
     useEffect(() => {
         if (setSubmitHandler && isXenditFetched) {
