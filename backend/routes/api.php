@@ -428,7 +428,8 @@ $router->prefix('/public')->group(
 
         // Webhooks
         $router->post('/webhooks/stripe', StripeIncomingWebhookAction::class);
-        $router->post('/webhooks/xendit', XenditIncomingWebhookAction::class);
+        $router->post('/webhooks/xendit', XenditIncomingWebhookAction::class)
+            ->middleware(\HiEvents\Http\Middleware\XenditWebhookCors::class);
 
         // Check-In
         $router->get('/check-in-lists/{check_in_list_short_id}', GetCheckInListPublicAction::class);
